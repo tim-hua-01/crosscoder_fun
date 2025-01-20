@@ -1,2 +1,6 @@
 wandb/*
 __pycache__/*
+.env
+*.pt
+.ipynb_checkpoints/*
+.mypy_cache/*
