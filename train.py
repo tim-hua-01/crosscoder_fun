@@ -113,7 +113,7 @@ default_cfg = {
     "buffer_mult": 128,
     "lr": 5e-5,
     "num_tokens": 32_000_000,
-    "l1_coeff": 2,
+    "l1_coeff": 1.5,
     "beta1": 0.9,
     "beta2": 0.999,
     "d_in": base_model.cfg.d_model,

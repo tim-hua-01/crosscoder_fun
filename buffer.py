@@ -1,6 +1,7 @@
 from utils import *
 from transformer_lens import ActivationCache
 import tqdm
+from warnings import warn
 
 class Buffer:
     """
@@ -43,9 +44,7 @@ class Buffer:
     def estimate_norm_scaling_factor(self, batch_size, model, n_batches_for_norm_estimate: int = 100):
         # stolen from SAELens https://github.com/jbloomAus/SAELens/blob/6d6eaef343fd72add6e26d4c13307643a62c41bf/sae_lens/training/activations_store.py#L370
         norms_per_batch = []
-        for i in tqdm.tqdm(
-            range(n_batches_for_norm_estimate), desc="Estimating norm scaling factor"
-        ):
+        for i in range(n_batches_for_norm_estimate):
             tokens = self.all_tokens[i * batch_size : (i + 1) * batch_size]
             _, cache = model.run_with_cache(
                 tokens,
@@ -70,6 +69,9 @@ class Buffer:
             else:
                 num_batches = self.buffer_batches // 2
             self.first = False
+            # if self.token_pointer + num_batches >= len(self.all_tokens):
+            #     self.token_pointer = 0
+            #     warn("Resetting token pointer to 0")
             for _ in range(0, num_batches, self.cfg["model_batch_size"]):
                 tokens = self.all_tokens[
                     self.token_pointer : min(
