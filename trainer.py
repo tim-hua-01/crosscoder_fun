@@ -11,7 +11,8 @@ class Trainer:
         self.model_B = model_B
         self.crosscoder = CrossCoder(cfg)
         self.buffer = Buffer(cfg, model_A, model_B, all_tokens)
-        self.total_steps = cfg["num_tokens"] // (cfg["batch_size"]*cfg['seq_length']
+        self.total_steps = cfg["num_tokens"] // (cfg["batch_size"]*cfg['seq_len'])
+        assert all_tokens.shape[0] * all_tokens.shape[1] > cfg['num_tokens'], f"Need to have {cfg['num_tokens']}, but all tokens have shape {all_tokens.shape}"
 
         self.optimizer = torch.optim.Adam(
             self.crosscoder.parameters(),

@@ -10,7 +10,7 @@ from huggingface_hub import hf_hub_download
 from typing import NamedTuple
 
 DTYPES = {"fp32": torch.float32, "fp16": torch.float16, "bf16": torch.bfloat16}
-SAVE_DIR = Path("/workspace/crosscoder-model-diff-replication/checkpoints")
+SAVE_DIR = Path("/crosscoder_fun/cc_checkpoints")
 
 class LossOutput(NamedTuple):
     # loss: torch.Tensor
