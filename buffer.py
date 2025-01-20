@@ -25,6 +25,7 @@ class Buffer:
         self.token_pointer = 0
         self.first = True
         self.normalize = True
+        
         self.all_tokens = all_tokens
         
         estimated_norm_scaling_factor_A = self.estimate_norm_scaling_factor(cfg["model_batch_size"], model_A)
@@ -61,6 +62,7 @@ class Buffer:
 
     @torch.no_grad()
     def refresh(self):
+        self.last_one = False
         self.pointer = 0
         #print("Refreshing the buffer!")
         with torch.autocast("cuda", torch.bfloat16):
@@ -72,12 +74,16 @@ class Buffer:
             # if self.token_pointer + num_batches >= len(self.all_tokens):
             #     self.token_pointer = 0
             #     warn("Resetting token pointer to 0")
-            for _ in range(0, num_batches, self.cfg["model_batch_size"]):
-                tokens = self.all_tokens[
-                    self.token_pointer : min(
+            for _ in range(0, num_batches, self.cfg["model_batch_size"]): #I still don't know where model batch size comes from
+                start_index = self.token_pointer
+                end_index = min(
                         self.token_pointer + self.cfg["model_batch_size"], num_batches
                     )
-                ]
+                assert start_index < end_index, f"Start index {start_index} not before end index {end_index}"
+                if end_index == num_batches:
+                    assert not self.last_one, "How come we've been here before?"
+                    self.last_one = True
+                tokens = self.all_tokens[start_index:end_index]
                 _, cache_A = self.model_A.run_with_cache(
                     tokens, names_filter=self.cfg["hook_point"]
                 )

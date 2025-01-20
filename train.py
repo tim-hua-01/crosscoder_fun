@@ -129,7 +129,7 @@ default_cfg = {
     "dec_init_norm": 0.08,
     "hook_point": "blocks.5.hook_resid_pre",
     "wandb_project": "crosscoder-fun",
-    "wandb_run_name": "pythia-160m-deduped-v0",
+    "wandb_run_name": "pythia-160m-more-serious",
 }
 cfg = arg_parse_update_cfg(default_cfg)
 

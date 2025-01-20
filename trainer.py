@@ -11,7 +11,7 @@ class Trainer:
         self.model_B = model_B
         self.crosscoder = CrossCoder(cfg)
         self.buffer = Buffer(cfg, model_A, model_B, all_tokens)
-        self.total_steps = cfg["num_tokens"] // cfg["batch_size"]
+        self.total_steps = cfg["num_tokens"] // (cfg["batch_size"]*cfg['seq_length']
 
         self.optimizer = torch.optim.Adam(
             self.crosscoder.parameters(),
