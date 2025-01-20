@@ -63,14 +63,14 @@ class Buffer:
     @torch.no_grad()
     def refresh(self):
         self.pointer = 0
-        print("Refreshing the buffer!")
+        #print("Refreshing the buffer!")
         with torch.autocast("cuda", torch.bfloat16):
             if self.first:
                 num_batches = self.buffer_batches
             else:
                 num_batches = self.buffer_batches // 2
             self.first = False
-            for _ in tqdm.trange(0, num_batches, self.cfg["model_batch_size"]):
+            for _ in range(0, num_batches, self.cfg["model_batch_size"]):
                 tokens = self.all_tokens[
                     self.token_pointer : min(
                         self.token_pointer + self.cfg["model_batch_size"], num_batches

@@ -64,7 +64,7 @@ class Trainer:
 
     def log(self, loss_dict):
         wandb.log(loss_dict, step=self.step_counter)
-        print(loss_dict)
+        #print(loss_dict)
 
     def save(self):
         self.crosscoder.save()
