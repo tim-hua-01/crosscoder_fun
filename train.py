@@ -5,14 +5,27 @@ from trainer import Trainer
 device = 'cuda:0'
 
 base_model = HookedTransformer.from_pretrained(
-    "gemma-2-2b", 
+    "pythia-160m-deduped", 
     device=device, 
 )
 
-chat_model = HookedTransformer.from_pretrained(
-    "gemma-2-2b-it", 
+checkpoint_mid_model = HookedTransformer.from_pretrained(
+    "EleutherAI/pythia-160m-deduped", 
     device=device, 
+    checkpoint_value = 512
 )
+
+# %%
+
+from transformers import GPTNeoXForCausalLM, AutoTokenizer
+
+checkpoint_mid_model_weights = GPTNeoXForCausalLM.from_pretrained(
+  "EleutherAI/pythia-160m-deduped",
+  revision="step512"
+)
+#%%
+
+checkpoint_mid_model = checkpoint_mid_model.load_state_dict(checkpoint_mid_model_weights.state_dict())
 
 # %%
 all_tokens = load_pile_lmsys_mixed_tokens()
