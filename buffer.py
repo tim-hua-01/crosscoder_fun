@@ -76,6 +76,8 @@ class Buffer:
                         self.token_pointer + self.cfg["model_batch_size"], num_batches
                     )
                 ]
+                if len(tokens) == 0:
+                    print("Tokens are empty")
                 _, cache_A = self.model_A.run_with_cache(
                     tokens, names_filter=self.cfg["hook_point"]
                 )
