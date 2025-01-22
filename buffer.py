@@ -12,14 +12,13 @@ class Buffer:
         assert model_A.cfg.d_model == model_B.cfg.d_model
         self.cfg = cfg
         self.buffer_size = cfg["batch_size"] * cfg["buffer_mult"]
-        self.buffer_batches = self.buffer_size // (cfg["seq_len"] - 1)
-        self.buffer_size = self.buffer_batches * (cfg["seq_len"] - 1)
+        self.buffer_batches = self.buffer_size // cfg["model_batch_size"]
+
         self.buffer = torch.zeros(
             (self.buffer_size, 2, model_A.cfg.d_model),
             dtype=torch.bfloat16,
             requires_grad=False,
         ).to(cfg["device"]) # hardcoding 2 for model diffing
-        self.cfg = cfg
         self.model_A = model_A
         self.model_B = model_B
         self.token_pointer = 0
@@ -27,7 +26,6 @@ class Buffer:
         self.normalize = True
         
         self.all_tokens = all_tokens
-        
         estimated_norm_scaling_factor_A = self.estimate_norm_scaling_factor(cfg["model_batch_size"], model_A)
         estimated_norm_scaling_factor_B = self.estimate_norm_scaling_factor(cfg["model_batch_size"], model_B)
         
@@ -42,7 +40,7 @@ class Buffer:
         self.refresh()
 
     @torch.no_grad()
-    def estimate_norm_scaling_factor(self, batch_size, model, n_batches_for_norm_estimate: int = 100):
+    def estimate_norm_scaling_factor(self, batch_size, model, n_batches_for_norm_estimate: int = 50):
         # stolen from SAELens https://github.com/jbloomAus/SAELens/blob/6d6eaef343fd72add6e26d4c13307643a62c41bf/sae_lens/training/activations_store.py#L370
         norms_per_batch = []
         for i in range(n_batches_for_norm_estimate):
@@ -53,7 +51,7 @@ class Buffer:
                 return_type=None,
             )
             acts = cache[self.cfg["hook_point"]]
-            # TODO: maybe drop BOS here
+            acts = acts[:, 1:, :]
             norms_per_batch.append(acts.norm(dim=-1).mean().item())
         mean_norm = np.mean(norms_per_batch)
         scaling_factor = np.sqrt(model.cfg.d_model) / mean_norm
@@ -67,23 +65,19 @@ class Buffer:
         #print("Refreshing the buffer!")
         with torch.autocast("cuda", torch.bfloat16):
             if self.first:
-                num_batches = self.buffer_batches
+                num_model_batches = self.buffer_batches
             else:
-                num_batches = self.buffer_batches // 2
+                num_model_batches = self.buffer_batches // 2
             self.first = False
-            # if self.token_pointer + num_batches >= len(self.all_tokens):
-            #     self.token_pointer = 0
-            #     warn("Resetting token pointer to 0")
-            for _ in range(0, num_batches, self.cfg["model_batch_size"]): #I still don't know where model batch size comes from
+
+            for _ in range(0, num_model_batches):
+
                 start_index = self.token_pointer
-                end_index = min(
-                        self.token_pointer + self.cfg["model_batch_size"], num_batches
-                    )
+                end_index = self.token_pointer + self.cfg["model_batch_size"]
                 assert start_index < end_index, f"Start index {start_index} not before end index {end_index}"
-                if end_index == num_batches:
-                    assert not self.last_one, "How come we've been here before?"
-                    self.last_one = True
+
                 tokens = self.all_tokens[start_index:end_index]
+                assert tokens.shape == (self.cfg["model_batch_size"], self.cfg["seq_len"]), f"Tokens shape {tokens.shape} not equal to model batch size {self.cfg['model_batch_size']} and seq len {self.cfg['seq_len']}"
                 _, cache_A = self.model_A.run_with_cache(
                     tokens, names_filter=self.cfg["hook_point"]
                 )
@@ -96,10 +90,10 @@ class Buffer:
 
                 acts = torch.stack([cache_A[self.cfg["hook_point"]], cache_B[self.cfg["hook_point"]]], dim=0)
                 acts = acts[:, :, 1:, :] # Drop BOS
-                assert acts.shape == (2, tokens.shape[0], tokens.shape[1]-1, self.model_A.cfg.d_model) # [2, batch, seq_len, d_model]
+                assert acts.shape == (2, self.cfg["model_batch_size"],self.cfg["seq_len"] -1 , self.model_A.cfg.d_model) # [2, batch, seq_len, d_model]
                 acts = einops.rearrange(
                     acts,
-                    "n_layers batch seq_len d_model -> (batch seq_len) n_layers d_model",
+                    "n_models batch seq_len d_model -> (batch seq_len) n_models d_model",
                 )
 
                 self.buffer[self.pointer : self.pointer + acts.shape[0]] = acts

@@ -14,6 +14,16 @@ class Trainer:
         self.total_steps = cfg["num_tokens"] // (cfg["batch_size"]*cfg['seq_len'])
         assert all_tokens.shape[0] * all_tokens.shape[1] > cfg['num_tokens'], f"Need to have {cfg['num_tokens']}, but all tokens have shape {all_tokens.shape}"
 
+        print(
+            f"""Initialized trainer
+            
+            We will take {self.total_steps} steps.
+
+            At each step, the crosscoder trains on a batch of {cfg['batch_size']}, each with {cfg['seq_len']} tokens.
+
+            There will be a total of {cfg["batch_size"] * cfg["buffer_mult"]} batches in the buffer.
+            """)
+
         self.optimizer = torch.optim.Adam(
             self.crosscoder.parameters(),
             lr=cfg["lr"],
