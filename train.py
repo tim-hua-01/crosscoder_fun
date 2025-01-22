@@ -106,6 +106,7 @@ def compile_all_tokens(sequence_length=256, batch_size=512, max_batches=1000, de
 # %%
 tokens_no_bos = compile_all_tokens()
 tokens_with_bos = torch.cat([torch.zeros(tokens_no_bos.shape[0], 1, device=tokens_no_bos.device, dtype=torch.int32), tokens_no_bos[:, :-1]], dim=1)
+
 # %%
 default_cfg = {
     "seed": 49,
@@ -113,7 +114,7 @@ default_cfg = {
     "buffer_mult": 128,
     "lr": 5e-5,
     "num_tokens": 32_000_000,
-    "l1_coeff": 2,
+    "l1_coeff": 1.5,
     "beta1": 0.9,
     "beta2": 0.999,
     "d_in": base_model.cfg.d_model,
@@ -123,7 +124,7 @@ default_cfg = {
     "model_name": "pythia-160m-deduped",
     "site": "resid_pre",
     "device": "cuda:0",
-    "model_batch_size": 4,
+    "model_batch_size": 8,
     "log_every": 100,
     "save_every": 30000,
     "dec_init_norm": 0.08,
