@@ -7,13 +7,6 @@ from torch.nn.utils import clip_grad_norm_
 class Trainer:
     def __init__(self, cfg, model_A, model_B, all_tokens):
         self.cfg = cfg
-        self.model_A = model_A
-        self.model_B = model_B
-        self.crosscoder = CrossCoder(cfg)
-        self.buffer = Buffer(cfg, model_A, model_B, all_tokens)
-        self.total_steps = cfg["num_tokens"] // (cfg["batch_size"]*cfg['seq_len'])
-        assert all_tokens.shape[0] * all_tokens.shape[1] > cfg['num_tokens'], f"Need to have {cfg['num_tokens']}, but all tokens have shape {all_tokens.shape}"
-
         print(
             f"""Initialized trainer
             
@@ -23,6 +16,14 @@ class Trainer:
 
             There will be a total of {cfg["batch_size"] * cfg["buffer_mult"]} batches in the buffer.
             """)
+        self.model_A = model_A
+        self.model_B = model_B
+        self.crosscoder = CrossCoder(cfg)
+        self.buffer = Buffer(cfg, model_A, model_B, all_tokens)
+        self.total_steps = cfg["num_tokens"] // (cfg["batch_size"]*cfg['seq_len'])
+        assert all_tokens.shape[0] * all_tokens.shape[1] > cfg['num_tokens'], f"Need to have {cfg['num_tokens']}, but all tokens have shape {all_tokens.shape}"
+
+        
 
         self.optimizer = torch.optim.Adam(
             self.crosscoder.parameters(),

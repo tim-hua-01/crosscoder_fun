@@ -130,11 +130,12 @@ default_cfg = {
     "dec_init_norm": 0.08,
     "hook_point": "blocks.5.hook_resid_pre",
     "wandb_project": "crosscoder-fun",
-    "wandb_run_name": "random_cfg_test",
+    "wandb_run_name": "random_cfg_test222",
 }
 cfg = arg_parse_update_cfg(default_cfg)
 
-trainer = Trainer(cfg, base_model, checkpoint_mid_model, tokens_with_bos)
-print("Training...")
-trainer.train()
+if __name__ == "__main__":
+    trainer = Trainer(cfg, base_model, checkpoint_mid_model, tokens_with_bos)
+    print("Training...")
+    trainer.train()
 # %%
