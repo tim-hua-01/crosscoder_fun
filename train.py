@@ -104,8 +104,8 @@ def compile_all_tokens(sequence_length=256, batch_size=512, max_batches=1000, de
 
 
 # %%
-all_tokens = compile_all_tokens()
-
+tokens_no_bos = compile_all_tokens()
+tokens_with_bos = torch.cat([torch.zeros(tokens_no_bos.shape[0], 1, device=tokens_no_bos.device, dtype=torch.int32), tokens_no_bos[:, :-1]], dim=1)
 # %%
 default_cfg = {
     "seed": 49,
@@ -129,11 +129,12 @@ default_cfg = {
     "dec_init_norm": 0.08,
     "hook_point": "blocks.5.hook_resid_pre",
     "wandb_project": "crosscoder-fun",
-    "wandb_run_name": "pythia-160m-deduped-v0",
+    "wandb_run_name": "random_cfg_test222",
 }
 cfg = arg_parse_update_cfg(default_cfg)
 
-trainer = Trainer(cfg, base_model, checkpoint_mid_model, all_tokens)
-print("Training...")
-trainer.train()
+if __name__ == "__main__":
+    trainer = Trainer(cfg, base_model, checkpoint_mid_model, tokens_with_bos)
+    print("Training...")
+    trainer.train()
 # %%
