@@ -1,9 +1,13 @@
 # %%
+import os
+import sys
+sys.path.append('/crosscoder_fun')
+
 from utils import *
 from crosscoder import CrossCoder
 torch.set_grad_enabled(False);
 # %%
-cross_coder = CrossCoder.load_from_hf()
+cross_coder = CrossCoder.load("version_6",0)
 
 # %%
 norms = cross_coder.W_dec.norm(dim=-1)
@@ -15,7 +19,7 @@ relative_norms.shape
 
 fig = px.histogram(
     relative_norms.detach().cpu().numpy(), 
-    title="Gemma 2 2B Base vs IT Model Diff",
+    title="Pythia 160m de duped crosscoder halfway v. finished model<br> <sub>Left is finished, right is halfway checkpoint</sub>",
     labels={"value": "Relative decoder norm strength"},
     nbins=200,
 )

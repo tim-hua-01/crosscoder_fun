@@ -5,7 +5,9 @@ from warnings import warn
 
 class Buffer:
     """
-    This defines a data buffer, to store a stack of acts across both model that can be used to train the autoencoder. It'll automatically run the model to generate more when it gets halfway empty.
+    This defines a data buffer, to store a stack of acts across both model that can be used to train the autoencoder.
+
+    I swap out the buffer completely when it runs out instead of swapping out some subset
     """
 
     def __init__(self, cfg, model_A, model_B, all_tokens):
@@ -62,12 +64,14 @@ class Buffer:
 
     @torch.no_grad()
     def refresh(self):
+        print("Refreshing buffer")
         self.pointer = 0
         self.buffer = torch.zeros(
             (self.buffer_size, 2, self.model_A.cfg.d_model),
             dtype=torch.bfloat16,
             requires_grad=False,
         ).to(self.cfg["device"])
+        torch.cuda.empty_cache()
         with torch.autocast("cuda", torch.bfloat16):
             self.first = False
             #print(f"We're going to advance {self.buffer_batches} batches")

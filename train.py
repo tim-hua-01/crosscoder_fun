@@ -110,11 +110,11 @@ tokens_with_bos = torch.cat([torch.zeros(tokens_no_bos.shape[0], 1, device=token
 # %%
 default_cfg = {
     "seed": 49,
-    "batch_size": 1024,
-    "buffer_mult": 512,
+    "batch_size": 4096,
+    "buffer_mult": 180,
     "lr": 5e-5,
-    "num_tokens": 3_000_000,#should probs be 32_000_000
-    "l1_coeff": 1,
+    "num_tokens": 25_000_000,
+    "l1_coeff": 2,
     "beta1": 0.9,
     "beta2": 0.999,
     "d_in": base_model.cfg.d_model,
@@ -124,13 +124,13 @@ default_cfg = {
     "model_name": "pythia-160m-deduped",
     "site": "resid_pre",
     "device": "cuda:0",
-    "model_batch_size": 16,
-    "log_every": 100,
+    "model_batch_size": 32,
+    "log_every": 20,
     "save_every": 30000,
     "dec_init_norm": 0.08,
     "hook_point": "blocks.5.hook_resid_pre",
-    "wandb_project": "crosscoder-fun",
-    "wandb_run_name": "no_more_halfass_buffering_with_asserts",
+    "wandb_project": "crosscoder-actual",
+    "wandb_run_name": "l1_2_25_m_toks_base_and_mid",
 }
 cfg = arg_parse_update_cfg(default_cfg)
 

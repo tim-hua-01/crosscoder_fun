@@ -71,6 +71,7 @@ class Trainer:
             "explained_variance": losses.explained_variance.mean().item(),
             "explained_variance_A": losses.explained_variance_A.mean().item(),
             "explained_variance_B": losses.explained_variance_B.mean().item(),
+            "token_pointer": self.buffer.token_pointer,
         }
         self.step_counter += 1
         return loss_dict
